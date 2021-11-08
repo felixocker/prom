@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """main module for onto merging project"""
 
-import sys
+import unittest
+import unittest.mock
 import yaml
 
 import cli_confirm as confirm
-import cli_consistency as consistency
 import compare_by_labels as cbl
 import compare_by_structure as cbs
 import create_link_onto as clo
 import onto_a
 import onto_fr
 import similarity_boundary as sb
-import suppress_outputs as silent
 import translate_onto as to
 import quality_assessment as qa
+import baseline_string_matcher as bsm
+import onto_debugger as odb
+import alignment_selector as als
 
-from owlready2 import get_ontology, default_world, World, sync_reasoner, owl,\
-                      Nothing, onto_path, sync_reasoner_pellet
+from owlready2 import onto_path
 
 with open("config.yml", "r") as ymlfile:
     cfg = yaml.safe_load(ymlfile)
@@ -25,6 +26,7 @@ with open("config.yml", "r") as ymlfile:
     MIN_EX = cfg["settings"]["benchmark"]["min-example"]
     ACCEPT_THRESHOLD = cfg["thresholds"]["accept"]
     REJECT_THRESHOLD = cfg["thresholds"]["reject"]
+    SELECTION_ALGO = cfg["settings"]["alignment-algo"]
     PATHS = []
     for kg in ["onto1", "onto2"]:
         path = []
@@ -32,22 +34,10 @@ with open("config.yml", "r") as ymlfile:
             path.append(cfg["inputs"][kg][attr])
         PATHS.append(path)
 
-def check_consistency(path):
-    """check consistency of an onto, return inconsistent classes"""
-    my_world = World()
-    onto_path.append("./../data")
-    onto = my_world.get_ontology(path).load()
-    with onto:
-        with silent.suppress():
-            sync_reasoner_pellet(my_world, infer_property_values = True,\
-                                 infer_data_property_values = True)
-        inconsistent_classes = list(my_world.inconsistent_classes())
-        if inconsistent_classes:
-            inconsistent_classes.remove(owl.Nothing)
-    return inconsistent_classes
-
 def main():
     """create ontos, check consistency, preprocess, and create link onto"""
+    # set onto directory globally
+    onto_path.append("../data")
     # load settings
     with open("config.yml", "r") as ymlfile:
         cfg = yaml.safe_load(ymlfile)
@@ -63,16 +53,29 @@ def main():
     print("----")
     for path in PATHS:
         print(path[0])
-        inconsistent_classes = check_consistency(path[0])
-        if inconsistent_classes:
-            print("watch out - these notions are inconsistent:")
-            print(*inconsistent_classes, sep="\n")
-        else:
-            print("no inconsistencies detected - adding translations")
-            to.main(path[0], path[1], path[2], default_lang, path[3])
+        debugger = odb.OntoDebugger(iri=path[1], path=path[2])
+        debugger.debug_onto(assume_correct_taxo=False)
+        to.main(path[0], path[1], path[2], default_lang, path[3])
         print("----")
     # compare ontos
     matches = cbs.main(PATHS[0][1], PATHS[0][0], PATHS[1][1], PATHS[1][0], "semi")
+
+    # NOTE: do not include disjoints in selector, run own selector for inverse
+    disj_matches = [m for m in matches if m[3] == "disjoint"]
+    inv_matches = [m for m in matches if m[3] == "inverse"]
+    other_matches = [m for m in matches if not m[3] in ["disjoint", "inverse"]]
+    selector = als.AlignmentSelector(REJECT_THRESHOLD, other_matches, 1, 2, -1)
+    selector.optimize_combination(method=SELECTION_ALGO)
+    inv_selector = als.AlignmentSelector(REJECT_THRESHOLD, inv_matches, 1, 2, -1)
+    inv_selector.optimize_combination(method=SELECTION_ALGO)
+    matches = selector.optimal_combination + inv_selector.optimal_combination + disj_matches
+
+    # NOTE: the following two lines introduce an exemplary inconsistency - uncomment to test debugging mode
+    # requires manual confirmation of matches and manual debugging interactions
+    # change accordingly in program mode (set inputs to None)
+    # matches.append(['owl:Class', 'http://www.owl-ontologies.com/mason.owl#Drilling',\
+    #                 'http://www.ohio.edu/ontologies/manufacturing-capability#Drilling', 'disjoint', 0.9])
+
     print(f"all {len(matches)} potential matches are:")
     print(*matches, sep="\n")
     # auto_accepted_matches = sb.check_boundary(matches, 4, match_boundary)
@@ -85,30 +88,41 @@ def main():
         print("creating link onto")
         path_lo = clo.create_link_onto(PATHS[0][1], PATHS[0][0], PATHS[1][1], PATHS[1][0], accepted_matches, path_lo)
         print("running consistency check")
-        try:
-            inconsistent_classes = check_consistency(path_lo[2])
-        except:
-            print("something went wrong, most likely the imports - continuing anyways")
-            print("check link onto: " + path_lo[2])
-            break
+        joint_debugger = odb.OntoDebugger(iri=path_lo[0], path=path_lo[1])
+        inconsistent_classes = joint_debugger.reasoning()
         if not inconsistent_classes:
             print("no inconsistencies detected - check link onto: " + path_lo[2])
             break
         else:
             print("inconsistent classes detected:")
             print(*inconsistent_classes, sep="\n")
-            print("would you like to manually check matches? [y(es), n(o)]")
+            print("would you like to interactively debug the link ontology [i] or quit [q]?")
             user_input = input()
-            while user_input not in ["y", "n"]:
+            while user_input not in ["i", "q"]:
                 print("invalid choice, please try again")
                 user_input = input()
-            if user_input == "n":
+            if user_input == "q":
                 break
-            else:
-                accepted_matches = consistency.main(accepted_matches, inconsistent_classes)
+            elif user_input == "i":
+                # NOTE: debugging does not change list of accepted_matches
+                joint_debugger.debug_onto(assume_correct_taxo=False)
+                break
     if BENCHMARK_MODE:
         print("matching quality:")
         print(qa.create_report([match[1:4] for match in accepted_matches]))
+        print("baseline matching quality (string similarity based):")
+        bsm.create_baseline(configfile="config.yml", algtype="greedy", acceptance_threshold=.9)
 
 if __name__ == "__main__":
-    main()
+    inputs = None
+    if PATHS[0][1] == "http://www.owl-ontologies.com/mason.owl" and\
+       PATHS[1][1] == "http://www.ohio.edu/ontologies/manufacturing-capability":
+        inputs = ["y"]*31 + ["n"]
+    elif PATHS[0][1] == "http://example.org/onto-a.owl" and\
+         PATHS[1][1] == "http://example.org/onto-fr.owl":
+        inputs = ["y"]*13
+    if inputs:
+        with unittest.mock.patch('builtins.input', side_effect=inputs):
+            main()
+    else:
+        main()

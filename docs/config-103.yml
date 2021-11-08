@@ -8,7 +8,7 @@ settings:
   alignment-algo: greedy
   benchmark:
     benchmark-mode: True
-    reference-alignment: ../data/reference_alignment.csv
+    reference-alignment: ../data/refalign-103.csv
     min-example: True
     show-faulty-matches: True
 
@@ -18,15 +18,15 @@ thresholds:
 
 inputs:
   onto1:
-    file: file://./../data/onto-a.owl
-    iri: http://example.org/onto-a.owl
-    relpath: ../data/onto-a.owl
+    file: file://./../data/onto-101.rdf
+    iri: http://oaei.ontologymatching.org/2011/benchmarks/101/onto.rdf
+    relpath: ../data/onto-101.rdf
     lang: en
   onto2:
-    file: file://./../data/onto-fr.owl
-    iri: http://example.org/onto-fr.owl
-    relpath: ../data/onto-fr.owl
-    lang: null
+    file: file://./../data/onto-103.rdf
+    iri: http://oaei.ontologymatching.org/2011/benchmarks/103/onto.rdf
+    relpath: ../data/onto-103.rdf
+    lang: en
   vocab: ../data/production-vocabulary.csv
 
 priors:

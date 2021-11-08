@@ -3,6 +3,7 @@
 
 import random
 import string
+import sys
 import types
 from owlready2 import get_ontology, IRIS, Thing, DatatypeProperty,\
                       ObjectProperty, TransitiveProperty, AllDisjoint
@@ -28,10 +29,11 @@ def insert_relation(class1, class2, relation, elem_type):
     elem_types = {"owl:Class": Thing,
                   "owl:ObjectProperty": ObjectProperty,
                   "owl:DatatypeProperty": DatatypeProperty}
-    # create an element in the link onto to conform to OWL representation
-    my_class1 = types.new_class(str(class1).split('#')[-1], (elem_types[elem_type],))
+    # storing correspondence only is useless, as it would be added as an annotation
+    # create two placeholder elements in the link onto, one for each input onto, and link them
+    my_class1 = types.new_class("1_" + str(class1).split('#')[-1], (elem_types[elem_type],))
     my_class1.equivalent_to.append(IRIS[class1])
-    my_class2 = types.new_class(str(class2).split('#')[-1], (elem_types[elem_type],))
+    my_class2 = types.new_class("2_" + str(class2).split('#')[-1], (elem_types[elem_type],))
     my_class2.equivalent_to.append(IRIS[class2])
     try:
         if relation == "hypernym":

@@ -5,11 +5,12 @@ settings:
   domain-specific-dict: True
   spellchecking: True
   match-boundary: .6
+  alignment-algo: greedy
   benchmark:
-    benchmark-mode: False
-    reference-alignment: None
+    benchmark-mode: True
+    reference-alignment: ../data/reference_alignment_prod_ontos.csv
     min-example: False
-    show-faulty-matches: False
+    show-faulty-matches: True
 
 thresholds:
   accept: .6
@@ -22,9 +23,9 @@ inputs:
     relpath: ../data/mason_reduced.owl
     lang: en
   onto2:
-    file: file://./../data/mfg-resource_reduced.owl
+    file: file://./../data/manufacturing-capability
     iri: http://www.ohio.edu/ontologies/manufacturing-capability
-    relpath: ../data/mfg-resource_reduced.owl
+    relpath: ../data/manufacturing-capability
     lang: en
   vocab: ../data/production-vocabulary.csv
 

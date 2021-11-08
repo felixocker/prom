@@ -1,0 +1,10 @@
+http://www.owl-ontologies.com/mason.owl#enablesRealisationOf,http://www.ohio.edu/ontologies/manufacturing-capability#enables,hyponym
+http://www.owl-ontologies.com/mason.owl#Drilling,http://www.ohio.edu/ontologies/manufacturing-capability#Drilling,equivalence
+http://www.owl-ontologies.com/mason.owl#Turning,http://www.ohio.edu/ontologies/manufacturing-capability#Turning,equivalence
+http://www.owl-ontologies.com/mason.owl#Milling,http://www.ohio.edu/ontologies/manufacturing-capability#Milling,equivalence
+http://www.owl-ontologies.com/mason.owl#Broaching,http://www.ohio.edu/ontologies/manufacturing-capability#Broaching,equivalence
+http://www.owl-ontologies.com/mason.owl#Grinding,http://www.ohio.edu/ontologies/manufacturing-capability#Grinding,equivalence
+http://www.owl-ontologies.com/mason.owl#Addition,http://www.ohio.edu/ontologies/manufacturing-capability#MaterialAdditionFunction,hypernym
+http://www.owl-ontologies.com/mason.owl#Polishing,http://www.ohio.edu/ontologies/manufacturing-capability#Polishing,hyponym
+http://www.owl-ontologies.com/mason.owl#enablesRealisationOf,http://www.ohio.edu/ontologies/manufacturing-capability#enabledBy,inverse
+http://www.owl-ontologies.com/mason.owl#Control,http://www.ohio.edu/ontologies/manufacturing-capability#AxisControlingFunction,hypernym

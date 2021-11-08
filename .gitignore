@@ -5,9 +5,14 @@ src/__pycache__/
 .vscode/
 # files to be ignored
 *.owl
-!data/**/test.owl
 *.ttl
+docs/*.csv
+docs/*.html
+# individual files to be ignored
 data/catalog-v001.xml
+data/manufacturing-capability
+# files to be kept
+!data/**/test.owl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

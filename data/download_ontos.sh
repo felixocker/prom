@@ -15,6 +15,7 @@ done
 
 source ../.venv/bin/activate
 python reduce_ontos.py
+mv mfg-resource_reduced.owl manufacturing-capability
 echo "created reduced ontos"
 
 for file in mason.owl mfg-resource.owl

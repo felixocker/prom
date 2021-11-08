@@ -1,0 +1,4 @@
+settings:
+  benchmark:
+    reference-alignment: Null
+    show-faulty-matches: True
