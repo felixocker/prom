@@ -1,0 +1,14 @@
+product,raw material,batch,input,output,assembly,part,intermediate,by product,co product,core product,waste
+process,production process,operation,manufacturing process,batch process,activity,function,stage,action,manufacturing method,template skill
+resource,production resource,process cell,unit,module,plant item,technical resource
+capability,skill,system behavior
+specification,process plan,goal,formula,description
+quality,constraint,feature,property,attribute
+quale,value,variable
+machine,transporter,producer,mover,equipment module
+company,enterprise,business
+plant,production system,automated production system,facility,factory
+site,geographical resource,location
+employee,human resource
+engineer,designer
+operator,user

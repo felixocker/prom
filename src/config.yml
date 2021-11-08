@@ -1,0 +1,63 @@
+programming-language: python
+
+settings:
+  default-language: en
+  domain-specific-dict: True
+  spellchecking: True
+  match-boundary: .6
+  benchmark:
+    benchmark-mode: True
+    reference-alignment: ../data/reference_alignment.csv
+    min-example: True
+    show-faulty-matches: True
+
+thresholds:
+  accept: .6
+  reject: .3
+
+inputs:
+  onto1:
+    file: file://./../data/onto-a.owl
+    iri: http://example.org/onto-a.owl
+    relpath: ../data/onto-a.owl
+    lang: en
+  onto2:
+    file: file://./../data/onto-fr.owl
+    iri: http://example.org/onto-fr.owl
+    relpath: ../data/onto-fr.owl
+    lang: null
+  vocab: ../data/production-vocabulary.csv
+
+priors:
+  semantic:
+    weighting: 1
+    explicit: .9
+    domain-specific: .8
+    implicit-syn: .7
+    implicit-ant: .6
+    boundary: .6
+  structural:
+    dp-rating:
+      weighting: 1
+      domain: .3
+      range: .3
+      interval: .3
+      interval-equivalence: 1
+      interval-overlap: .7
+      functional: .1
+      boundary: .8
+    op-rating:
+      weighting: 1
+      domain: 1
+      range: 1
+      attributes: 1
+      functional: .1
+      inversefunctional: .1
+      symmetric: .1
+      asymmetric: .1
+      transitive: .1
+      reflexive: .1
+      irreflexive: .1
+      boundary: .8
+    class-rating:
+      weighting: 1
