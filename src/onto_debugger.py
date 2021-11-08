@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-debugging functionality taken from *our own repository - name removed for double-blind review*
+debugging functionality taken from https://github.com/felixocker/ontor
 could not directly import repo itself due to dependency clash
 """
 

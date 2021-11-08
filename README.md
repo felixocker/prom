@@ -29,10 +29,21 @@ OWL 2 DL ontology merging framework tailored to the production domain
   3. run *main.py*
 * for running OAEI benchmarks, cp. the instructions in the utility scripts in *docs/*
 
-# Copyright
-Copyright © 2021 - The Authors\
-All rights reserved.
+# Citation
+For scientific use, please cite using the following bibtex entry:
+```
+@article{ocker2021cii,
+title = {{A Framework for Merging Ontologies in the Context of Smart Factories (accepted)}},
+author = {Ocker, Felix and Vogel-Heuser, Birgit and Paredis, Christiaan JJ},
+journal={Computers in Industry},
+year = {2021},
+publisher={Elsevier}
+}
+```
+
+# License
+GPL v3.0
 
 # Contact
-The Authors
-
+Felix Ocker - [felix.ocker@tum.de](mailto:felix.ocker@tum.de)\
+Technical University of Munich - [Institute of Automation and Information Systems](https://www.mw.tum.de/en/ais/homepage/)
