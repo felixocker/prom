@@ -11,6 +11,7 @@ FILE = "../data/onto-fr.owl"
 def main():
     """create onto fr and save to file"""
     onto = get_ontology(IRI)
+
     with onto:
         # classes
         class a(Thing):
@@ -70,6 +71,21 @@ def main():
         transport.is_a.append(di.some(float))
         transport.is_a.append(du.some(float))
         AllDisjoint([souleve, creer])
+
+    for i in range(1, 6):
+        m = a("aa" + str(i))
+        m.a_longueur.append(float(6-i))
+    for i in range(1, 3):
+        m = b("am" + str(i))
+        m.a_longueur.append(float(6-i))
+    # onto["aa1"].creer.append(onto["am1"])
+    onto["aa2"].creer.append(onto["aa1"])
+    onto["aa2"].a_longueur.append(10.0)
+    onto["aa2"].du.append(10.0)
+
+    onto["am2"].creer.append(onto["aa1"])
+    onto["am2"].du.append(10.0)
+
     onto.save(file=FILE)
 
 if __name__ == "__main__":

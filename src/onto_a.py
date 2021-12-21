@@ -10,6 +10,7 @@ FILE = "../data/onto-a.owl"
 def main():
     """create onto a and save to file"""
     onto = get_ontology(IRI)
+
     with onto:
         class merhcandise(Thing): pass
         class resource(Thing): pass
@@ -44,6 +45,13 @@ def main():
         resource.is_a.append(produce.some(merhcandise))
         transfer.is_a.append(distance.some(float))
         transfer.is_a.append(duration.some(float))
+
+    for i in range(1, 8):
+        m = merhcandise("mm" + str(i))
+        m.length = float(i)
+    onto["mm4"].produce.append(onto["mm5"])
+    onto["mm4"].duration.append(10.0)
+
     onto.save(file=FILE)
 
 if __name__ == "__main__":

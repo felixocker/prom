@@ -16,6 +16,19 @@ thresholds:
   accept: .6
   reject: .3
 
+abox:
+  string-threshold: .95
+  overall-threshold: .1
+  algtype: greedy
+  weighting:
+    label: .2
+    structure: .8
+    structure-sub:
+      dp: .4
+      op-outgoing: .3
+      op-incoming: .3
+      op-threshold: 1
+
 inputs:
   onto1:
     file: file://./../data/onto-a.owl
