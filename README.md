@@ -30,14 +30,17 @@ OWL 2 DL ontology merging framework tailored to the production domain
 * for running OAEI benchmarks, cp. the instructions in the utility scripts in *docs/*
 
 # Citation
-For scientific use, please cite using the following bibtex entry:
+For scientific use, please cite as follows:
 ```
-@article{ocker2021cii,
-title = {{A Framework for Merging Ontologies in the Context of Smart Factories (accepted)}},
-author = {Ocker, Felix and Vogel-Heuser, Birgit and Paredis, Christiaan JJ},
-journal={Computers in Industry},
-year = {2021},
-publisher={Elsevier}
+@article{ocker2022merging,
+  title = {A framework for merging ontologies in the context of smart factories},
+  author = {Ocker, Felix and Vogel-Heuser, Birgit and Paredis, Christiaan JJ},
+  journal={Computers in Industry},
+  volume={135},
+  pages={103571},
+  year = {2022},
+  publisher={Elsevier},
+  doi={10.1016/j.compind.2021.103571}
 }
 ```
 
