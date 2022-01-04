@@ -46,7 +46,6 @@ class AboxMatcher:
             self.opi_rating = cfg["abox"]["weighting"]["structure-sub"]["op-incoming"]
             self.op_threshold = cfg["abox"]["weighting"]["structure-sub"]["op-threshold"]
 
-
     def compare_inds_by_structure(self, unbiased: bool=False) -> list:
         """ compare individuals by structure; compare values associated via
         datatype properties and both incoming and outgoing object properties;
@@ -89,7 +88,7 @@ class AboxMatcher:
             objs = getattr(ind, world[prop].name)
             if isinstance(objs, list):
                 objs_list = objs
-            elif objs == None:
+            elif objs is None:
                 objs_list = []
             else:
                 objs_list = [objs]
@@ -135,14 +134,13 @@ class AboxMatcher:
             dot_product = np.dot(vec_a, vec_b)
             norm_a = np.linalg.norm(vec_a)
             norm_b = np.linalg.norm(vec_b)
-            if len(vec_a) < self.op_threshold:
+            cos_sim = None
+            if len(vec_a) < self.op_threshold or norm_a == 0.0 or norm_b == 0.0:
                 cos_sim = 0.0
             elif isinstance(vec_a, np.ndarray) and isinstance(vec_b, np.ndarray):
                 comparison = vec_a == vec_b
                 if comparison.all():
                     cos_sim = 1.0
-            elif norm_a == 0.0 or norm_b == 0.0:
-                cos_sim = 0.0
             elif isinstance(vec_a, list) and isinstance(vec_b, list) and vec_a == vec_b:
                 cos_sim = 1.0
             elif norm_a != 0.0 and norm_b != 0.0:
@@ -150,27 +148,27 @@ class AboxMatcher:
             return cos_sim
 
         def _create_prop_vec_dict(world: World, individuals: list, dpv: list, opv: list) -> dict:
-            mydict = {}
+            pvdict = {}
             for ind in individuals:
-                mydict[ind] = {
+                pvdict[ind] = {
                     "dpv": _populate_dpvi(world, ind, dpv),
                     "opvo": _populate_outgoing_opvi(world, ind, opv),
                     "opvi": _populate_incoming_opvi(world, ind, opv)
                 }
-            return mydict
+            return pvdict
 
-        def _calc_ratings_for_ind_sets(individuals1: list, individuals2: list):
+        def _calc_ratings_for_ind_sets(inds1: list, inds2: list) -> list:
             """ calculate pairwise similirity for all combinations of individuals
             from the two input lists
 
-            :param individuals1: first list of individuals to be compared
-            :param individuals2: second list of individuals to be compared
+            :param inds1: first list of individuals to be compared
+            :param inds2: second list of individuals to be compared
             :return: pairwise similarity ratings for the individuals
             """
-            mydict1 = _create_prop_vec_dict(self.onto1_world, individuals1, dpv1, opv1)
-            mydict2 = _create_prop_vec_dict(self.onto2_world, individuals2, dpv2, opv2)
+            mydict1 = _create_prop_vec_dict(self.onto1_world, inds1, dpv1, opv1)
+            mydict2 = _create_prop_vec_dict(self.onto2_world, inds2, dpv2, opv2)
             ratings: list = []
-            for combi in it.product(individuals1, individuals2):
+            for combi in it.product(inds1, inds2):
                 dpr = _binary_cos_sim(mydict1[combi[0]]["dpv"], mydict2[combi[1]]["dpv"])
                 opor = _rel_sim(mydict1[combi[0]]["opvo"], mydict2[combi[1]]["opvo"])
                 opir = _rel_sim(mydict1[combi[0]]["opvi"], mydict2[combi[1]]["opvi"])
@@ -192,8 +190,7 @@ class AboxMatcher:
                     all_ratings.extend(_calc_ratings_for_ind_sets(individuals1, individuals2))
         return all_ratings
 
-
-    def _combine_ratings(self, lst1: list, lst2: list, weighting1: float=.5, weighting2: float=.5) -> list:
+    def _combine_ratings(self, lst1: list, lst2: list, weighting1: float = .5, weighting2: float = .5) -> list:
         """ combine ratings from two individual comparisons
 
         :param lst1: results from first prior comparison (iri1, iri2, rating)
@@ -202,7 +199,8 @@ class AboxMatcher:
         :param weighting2: weighting for results of second prior comparison
         :return: combined ratings for string sim and structure
         """
-        double_rating = [(e1[0], e1[1], weighting1*e1[2]+weighting2*e2[2]) for e1 in lst1 for e2 in lst2 if e1[0]==e2[0] and e1[1]==e2[1]]
+        double_rating = [(e1[0], e1[1], weighting1*e1[2]+weighting2*e2[2]) for e1 in lst1 for e2 in lst2 if
+                         e1[0] == e2[0] and e1[1] == e2[1]]
         double_rating_pairs = [(e[0], e[1]) for e in double_rating]
         single_rating_1 = [(e[0], e[1], weighting1*e[2]) for e in lst1 if not (e[0], e[1]) in double_rating_pairs]
         single_rating_2 = [(e[0], e[1], weighting2*e[2]) for e in lst2 if not (e[0], e[1]) in double_rating_pairs]
@@ -211,8 +209,7 @@ class AboxMatcher:
         selector.optimize_combination("greedy")
         return selector.optimal_combination
 
-
-    def compare_inds_by_name(self, unbiased: bool=False) -> list:
+    def compare_inds_by_name(self, unbiased: bool = False) -> list:
         """ leverage TBox alignment for matching individuals
 
         :param unbiased: do not use information about class similarity from tbox
@@ -239,8 +236,7 @@ class AboxMatcher:
                     str_matches.extend(_string_matcher(individuals1, individuals2))
         return str_matches
 
-
-    def compare_inds(self, unbiased: bool=False) -> tuple:
+    def compare_inds(self, unbiased: bool=False) -> list:
         """ compare individuals in ontos specified in
 
         :param unbiased: if set to true, self.abox_al is used to only compare the
@@ -251,7 +247,6 @@ class AboxMatcher:
         structure_matches = self.compare_inds_by_structure(unbiased)
         matches = self._combine_ratings(string_matches, structure_matches, self.label_rating, self.structure_rating)
         return matches
-
 
 
 if __name__ == "__main__":
