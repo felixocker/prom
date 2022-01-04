@@ -1,8 +1,7 @@
 # custom 
 # directories to be ignored
-env/
-src/__pycache__/
 .vscode/
+.idea/
 # files to be ignored
 *.owl
 *.ttl
@@ -118,8 +117,8 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.venv
+.env/
+.venv/
 env/
 venv/
 ENV/
