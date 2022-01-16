@@ -31,9 +31,9 @@ def insert_relation(class1, class2, relation, elem_type):
                   "owl:DatatypeProperty": DatatypeProperty}
     # storing correspondence only is useless, as it would be added as an annotation
     # create two placeholder elements in the link onto, one for each input onto, and link them
-    my_class1 = types.new_class("1_" + str(class1).split('#')[-1], (elem_types[elem_type],))
+    my_class1 = types.new_class("A_" + str(class1).split('#')[-1], (elem_types[elem_type],))
     my_class1.equivalent_to.append(IRIS[class1])
-    my_class2 = types.new_class("2_" + str(class2).split('#')[-1], (elem_types[elem_type],))
+    my_class2 = types.new_class("B_" + str(class2).split('#')[-1], (elem_types[elem_type],))
     my_class2.equivalent_to.append(IRIS[class2])
     try:
         if relation == "hypernym":
@@ -65,16 +65,23 @@ def create_link_onto(iri1, path1, iri2, path2, matches, spec_ids=None):
     with onto:
         onto.imported_ontologies.append(onto1)
         onto.imported_ontologies.append(onto2)
-        class part(ObjectProperty, TransitiveProperty):
-            comment = ["relation for expressing meronomies"]
     # add comment which ontos are linked
         onto.metadata.comment.append(description)
-    # insert link relations
-        for elem in matches:
-            insert_relation(elem[1], elem[2], elem[3], elem[0])
+    # insert link relations for classes
+        for elem in class_matches:
+            insert_class_relation(elem[1], elem[2], elem[3], elem[0])
     onto.save(file=ids[1])
     return ids
 
+
+def add_abox_to_link_onto(ids: list, ind_matches: list) -> None:
+    onto = get_ontology(ids[0])
+    with onto:
+        for elem in ind_matches:
+            insert_individual_relation(onto, elem[0][0], elem[1][0])
+    onto.save(file=ids[1])
+
+
 if __name__ == "__main__":
-    create_link_onto("http://example.org/onto-a.owl", "file://./../data/onto-a.owl",\
-                     "http://example.org/onto-b.owl", "file://./../data/onto-b.owl", [])
+    create_link_onto("http://example.org/onto-a.owl", "file://./../data/onto-a.owl",
+                     "http://example.org/onto-fr.owl", "file://./../data/onto-fr.owl", [])
