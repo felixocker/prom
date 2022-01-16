@@ -4,7 +4,7 @@
 import itertools as it
 import numpy as np
 import yaml
-from owlready2 import World, IRIS, onto_path, owl, Property
+from owlready2 import World, IRIS, onto_path, owl, Property, entity
 
 import alignment_selector as alse
 import string_matcher as stma
@@ -185,10 +185,28 @@ class AboxMatcher:
             for match in self.tbox_al:
                 # NOTE: to reduce space complexity, it may make sense to check thresholds right away
                 if match[0] == "owl:Class" and match[3] in self.relations:
-                    individuals1 = self.onto1_world[match[1]].instances()
-                    individuals2 = self.onto2_world[match[2]].instances()
+                    # get individuals that are not instances of subclasses that also appear in the tbox alignment
+                    individuals1 = self._get_inds_unique_to_class(self.onto1_world[match[1]], 1)
+                    individuals2 = self._get_inds_unique_to_class(self.onto2_world[match[2]], 2)
                     all_ratings.extend(_calc_ratings_for_ind_sets(individuals1, individuals2))
         return all_ratings
+
+    def _get_inds_unique_to_class(self, cls: entity.ThingClass, index: int) -> list:
+        """ get individuals that are instances of a certain class, but are not instances of sublasses of class,
+        which also appear in the tbox alignment
+
+        :param cls: class from the tbox alignment
+        :param index: indicates whether the class is from the first or the second ontology to be merged,
+            relevant for link to tbox alignment
+        :return: list of individuals unique to class
+        """
+        individuals = list(cls.instances())
+        al_classes = [al[index] for al in self.tbox_al]
+        for sub in cls.subclasses():
+            if sub.iri in al_classes:
+                for ind in sub.instances():
+                    individuals.remove(ind)
+        return individuals
 
     def _combine_ratings(self, lst1: list, lst2: list, weighting1: float = .5, weighting2: float = .5) -> list:
         """ combine ratings from two individual comparisons
@@ -223,16 +241,20 @@ class AboxMatcher:
             matcher.match_lists()
             return matcher.matches
 
+        str_matches = []
         if unbiased:
             individuals1 = [[i, i.name] for i in self.onto1.individuals()]
             individuals2 = [[i, i.name] for i in self.onto2.individuals()]
             str_matches = _string_matcher(individuals1, individuals2)
         else:
-            str_matches = []
             for match in self.tbox_al:
                 if match[0] == "owl:Class" and match[3] in self.relations:
-                    individuals1 = [[i, i.name] for i in self.onto1_world[match[1]].instances()]
-                    individuals2 = [[i, i.name] for i in self.onto2_world[match[2]].instances()]
+                    # get individuals that are not instances of subclasses that also appear in the tbox alignment
+                    individuals1 = self._get_inds_unique_to_class(self.onto1_world[match[1]], 1)
+                    individuals2 = self._get_inds_unique_to_class(self.onto2_world[match[2]], 2)
+                    # get names of individuals
+                    individuals1 = [[i, i.name] for i in individuals1]
+                    individuals2 = [[i, i.name] for i in individuals2]
                     str_matches.extend(_string_matcher(individuals1, individuals2))
         return str_matches
 
@@ -251,13 +273,15 @@ class AboxMatcher:
 
 if __name__ == "__main__":
     tbox_alignment = [["owl:Class", "http://example.org/onto-a.owl#merhcandise",
-                      "http://example.org/onto-fr.owl#a", "equivalence", .9],
+                       "http://example.org/onto-fr.owl#a", "equivalence", .9],
+                      ["owl:Class", "http://example.org/onto-a.owl#car",
+                       "http://example.org/onto-fr.owl#voiture", "equivalence", .9],
                       ["owl:ObjectProperty", "http://example.org/onto-a.owl#produce",
-                      "http://example.org/onto-fr.owl#creer", "equivalence", .8],
+                       "http://example.org/onto-fr.owl#creer", "equivalence", .8],
                       ["owl:DatatypeProperty", "http://example.org/onto-a.owl#length",
-                      "http://example.org/onto-fr.owl#a_longueur", "equivalence", .8],
+                       "http://example.org/onto-fr.owl#a_longueur", "equivalence", .8],
                       ["owl:DatatypeProperty", "http://example.org/onto-a.owl#duration",
-                      "http://example.org/onto-fr.owl#du", "equivalence", .8]]
+                       "http://example.org/onto-fr.owl#du", "equivalence", .8]]
 
     abm = AboxMatcher(iri1="http://example.org/onto-a.owl", iri2="http://example.org/onto-fr.owl",
                       path1="../data/onto-a.owl", path2="../data/onto-fr.owl", tbox_al=tbox_alignment)

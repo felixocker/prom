@@ -7,12 +7,14 @@ from owlready2 import get_ontology, Thing, DatatypeProperty, ObjectProperty,\
 IRI = "http://example.org/onto-a.owl"
 FILE = "../data/onto-a.owl"
 
+
 def main():
     """create onto a and save to file"""
     onto = get_ontology(IRI)
 
     with onto:
         class merhcandise(Thing): pass
+        class car(merhcandise): pass
         class resource(Thing): pass
         class someVeryGoodResource(resource): pass
         class huge_resource(resource): pass
@@ -46,13 +48,16 @@ def main():
         transfer.is_a.append(distance.some(float))
         transfer.is_a.append(duration.some(float))
 
-    for i in range(1, 8):
+    for i in range(2, 8):
         m = merhcandise("mm" + str(i))
         m.length = float(i)
+    mm1 = car("mm1")
+    mm1.length = 1.0
     onto["mm4"].produce.append(onto["mm5"])
     onto["mm4"].duration.append(10.0)
 
     onto.save(file=FILE)
+
 
 if __name__ == "__main__":
     main()

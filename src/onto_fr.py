@@ -8,6 +8,7 @@ from owlready2 import get_ontology, Thing, DatatypeProperty, ObjectProperty,\
 IRI = "http://example.org/onto-fr.owl"
 FILE = "../data/onto-fr.owl"
 
+
 def main():
     """create onto fr and save to file"""
     onto = get_ontology(IRI)
@@ -16,6 +17,8 @@ def main():
         # classes
         class a(Thing):
             label = [locstr("produit", lang = "fr")]
+        class voiture(a):
+            label = [locstr("voiture", lang = "fr")]
         class b(Thing):
             label = [locstr("ressource")]#, lang = "fr")]
         class entreprise(Thing): pass
@@ -72,9 +75,11 @@ def main():
         transport.is_a.append(du.some(float))
         AllDisjoint([souleve, creer])
 
-    for i in range(1, 6):
+    for i in range(1, 5):
         m = a("aa" + str(i))
         m.a_longueur.append(float(6-i))
+    aa5 = voiture("aa5")
+    aa5.a_longueur.append(1.0)
     for i in range(1, 3):
         m = b("am" + str(i))
         m.a_longueur.append(float(6-i))
@@ -87,6 +92,7 @@ def main():
     onto["am2"].du.append(10.0)
 
     onto.save(file=FILE)
+
 
 if __name__ == "__main__":
     main()
