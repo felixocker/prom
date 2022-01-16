@@ -28,7 +28,7 @@ def main():
             domain = [resource]
             range = [merhcandise]
         class is_created_by(ObjectProperty, FunctionalProperty):
-            label = [locstr("is created by", lang = "en")]
+            label = [locstr("is created by", lang="en")]
         class succeeds(ObjectProperty, TransitiveProperty):
             domain = [process]
             range = [process]
@@ -41,7 +41,7 @@ def main():
         class length(DatatypeProperty, FunctionalProperty): pass
         class width(DatatypeProperty):
             domain = [merhcandise]
-            range = [ConstrainedDatatype(float, min_inclusive = 0, max_inclusive = 13)]
+            range = [ConstrainedDatatype(float, min_inclusive=0, max_inclusive=13)]
         merhcandise.is_a.append(length.some(float))
         merhcandise.is_a.append(width.some(float))
         resource.is_a.append(produce.some(merhcandise))
@@ -49,10 +49,8 @@ def main():
         transfer.is_a.append(duration.some(float))
 
     for i in range(2, 8):
-        m = merhcandise("mm" + str(i))
-        m.length = float(i)
-    mm1 = car("mm1")
-    mm1.length = 1.0
+        m = merhcandise("mm" + str(i), length=float(i))
+    mm1 = car("mm1", length=1.0)
     onto["mm4"].produce.append(onto["mm5"])
     onto["mm4"].duration.append(10.0)
 

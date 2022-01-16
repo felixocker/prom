@@ -16,52 +16,52 @@ def main():
     with onto:
         # classes
         class a(Thing):
-            label = [locstr("produit", lang = "fr")]
+            label = [locstr("produit", lang="fr")]
         class voiture(a):
-            label = [locstr("voiture", lang = "fr")]
+            label = [locstr("voiture", lang="fr")]
         class b(Thing):
-            label = [locstr("ressource")]#, lang = "fr")]
+            label = [locstr("ressource")]  # , lang="fr")]
         class entreprise(Thing): pass
         class c(Thing): pass
         # d is somewhat similar to a, but not as good a fit for onto-a-product
         class d(Thing): pass
         class e(b):
-            label = [locstr("une ressource très bonne", lang = "fr")]
+            label = [locstr("une ressource très bonne", lang="fr")]
         class grande_ressource(b):
-            label = [locstr("ressource énorme", lang = "fr")]
+            label = [locstr("ressource énorme", lang="fr")]
         class processus(Thing):
-            label = [locstr("processus", lang = "fr")]
+            label = [locstr("processus", lang="fr")]
         class transport(Thing):
-            label = [locstr("transport", lang = "fr")]
+            label = [locstr("transport", lang="fr")]
         class f(Thing):
-            label = [locstr("engrenage à vis sans fin", lang = "fr")]
+            label = [locstr("engrenage à vis sans fin", lang="fr")]
         class ex_op(ObjectProperty):
-            label = [locstr("produire", lang = "fr")]
+            label = [locstr("produire", lang="fr")]
             domain = [b]
             range = [a]
         # added to check antonym detection
         class souleve(ObjectProperty):
-            label = [locstr("souleve", lang = "fr")]
+            label = [locstr("souleve", lang="fr")]
             domain = [b]
         class creer(ObjectProperty):
-            label = [locstr("créer", lang = "fr")]
+            label = [locstr("créer", lang="fr")]
         class est_cree_par(ObjectProperty, FunctionalProperty):
-            label = [locstr("est créé par", lang = "fr")]
+            label = [locstr("est créé par", lang="fr")]
         class successeur(ObjectProperty, TransitiveProperty):
-            label = [locstr("successeur", lang = "fr")]
+            label = [locstr("successeur", lang="fr")]
             domain = [processus]
             range = [processus]
         class a_longueur(DatatypeProperty): pass
         class rel(DatatypeProperty):
-            label = [locstr("grande largeur", lang = "fr")]
+            label = [locstr("grande largeur", lang="fr")]
             domain = [a]
-            range = [ConstrainedDatatype(float, min_inclusive = 10, max_inclusive = 30)]
+            range = [ConstrainedDatatype(float, min_inclusive=10, max_inclusive=30)]
         class di(DatatypeProperty):
-            label = [locstr("distance", lang = "fr")]
+            label = [locstr("distance", lang="fr")]
             domain = [processus]
             range = [float]
         class du(DatatypeProperty):
-            label = [locstr("durée", lang = "fr")]
+            label = [locstr("durée", lang="fr")]
             domain = [processus]
             range = [float]
         # axioms
@@ -76,13 +76,10 @@ def main():
         AllDisjoint([souleve, creer])
 
     for i in range(1, 5):
-        m = a("aa" + str(i))
-        m.a_longueur.append(float(6-i))
-    aa5 = voiture("aa5")
-    aa5.a_longueur.append(1.0)
+        m = a("aa" + str(i), a_longueur=[float(6-i)])
+    aa5 = voiture("aa5", a_longueur=[1.0])
     for i in range(1, 3):
-        m = b("am" + str(i))
-        m.a_longueur.append(float(6-i))
+        m = b("am" + str(i), a_longueur=[float(6-i)])
     # onto["aa1"].creer.append(onto["am1"])
     onto["aa2"].creer.append(onto["aa1"])
     onto["aa2"].a_longueur.append(10.0)

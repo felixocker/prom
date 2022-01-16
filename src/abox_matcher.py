@@ -258,7 +258,7 @@ class AboxMatcher:
                     str_matches.extend(_string_matcher(individuals1, individuals2))
         return str_matches
 
-    def compare_inds(self, unbiased: bool=False) -> list:
+    def compare_inds(self, unbiased: bool = False) -> list:
         """ compare individuals in ontos specified in
 
         :param unbiased: if set to true, self.abox_al is used to only compare the
