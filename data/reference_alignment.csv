@@ -14,6 +14,7 @@ http://example.org/onto-a.owl#business,http://example.org/onto-fr.owl#b,disjoint
 http://example.org/onto-a.owl#business,http://example.org/onto-fr.owl#processus,disjoint
 http://example.org/onto-a.owl#huge_resource,http://example.org/onto-fr.owl#grande_ressource,equivalence
 http://example.org/onto-a.owl#merhcandise,http://example.org/onto-fr.owl#a,equivalence
+http://example.org/onto-a.owl#car,http://example.org/onto-fr.owl#voiture,equivalence
 http://example.org/onto-a.owl#transfer,http://example.org/onto-fr.owl#transport,equivalence
 http://example.org/onto-a.owl#process,http://example.org/onto-fr.owl#processus,equivalence
 http://example.org/onto-a.owl#process,http://example.org/onto-fr.owl#a,disjoint

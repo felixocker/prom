@@ -17,6 +17,7 @@ import quality_assessment as qa
 import baseline_string_matcher as bsm
 import onto_debugger as odb
 import alignment_selector as als
+import abox_matcher as am
 
 from owlready2 import onto_path
 
@@ -33,6 +34,7 @@ with open("config.yml", "r") as ymlfile:
         for attr in ["file", "iri", "relpath", "lang"]:
             path.append(cfg["inputs"][kg][attr])
         PATHS.append(path)
+
 
 def main():
     """create ontos, check consistency, preprocess, and create link onto"""
@@ -107,11 +109,17 @@ def main():
                 # NOTE: debugging does not change list of accepted_matches
                 joint_debugger.debug_onto(assume_correct_taxo=False)
                 break
+    # abox matching
+    abm = am.AboxMatcher(iri1=PATHS[0][1], iri2=PATHS[1][1],
+                         path1=PATHS[0][0], path2=PATHS[1][0], tbox_al=accepted_matches)
+    ind_matches = abm.compare_inds(unbiased=False)
+    clo.add_abox_to_link_onto(path_lo, ind_matches)
     if BENCHMARK_MODE:
         print("matching quality:")
         print(qa.create_report([match[1:4] for match in accepted_matches]))
         print("baseline matching quality (string similarity based):")
         bsm.create_baseline(configfile="config.yml", algtype="greedy", acceptance_threshold=.9)
+
 
 if __name__ == "__main__":
     inputs = None
@@ -120,7 +128,7 @@ if __name__ == "__main__":
         inputs = ["y"]*31 + ["n"]
     elif PATHS[0][1] == "http://example.org/onto-a.owl" and\
          PATHS[1][1] == "http://example.org/onto-fr.owl":
-        inputs = ["y"]*13
+        inputs = ["y"]*14
     if inputs:
         with unittest.mock.patch('builtins.input', side_effect=inputs):
             main()
