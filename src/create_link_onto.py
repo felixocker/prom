@@ -8,7 +8,8 @@ import types
 from owlready2 import get_ontology, IRIS, Thing, DatatypeProperty,\
                       ObjectProperty, TransitiveProperty, AllDisjoint
 
-def gen_ids(length = 10):
+
+def gen_ids(length: int = 10):
     """create name and iri for link onto"""
     # ids[0] is the IRI, ids[1] is the filename, ids[2] is the respective path
     ids = [None, None, None]
@@ -19,12 +20,13 @@ def gen_ids(length = 10):
     ids[2] = "file://./" + ids[1]
     return ids
 
-def insert_relation(class1, class2, relation, elem_type):
-    """insert a relation between two ontos"""
+
+def insert_class_relation(class1, class2, relation, elem_type) -> None:
+    """insert a relation between two classes from two different ontos"""
     # NOTE: specifying disjoints in Owlready2 requires AllDisjoint()
     relations = {"equivalence": "equivalent_to",
-                 "hypernym": "is_a", #superclass
-                 "hyponym": "is_a", #subclass
+                 "hypernym": "is_a",  # superclass
+                 "hyponym": "is_a",  # subclass
                  "inverse": "inverse_property"}
     elem_types = {"owl:Class": Thing,
                   "owl:ObjectProperty": ObjectProperty,
@@ -45,10 +47,27 @@ def insert_relation(class1, class2, relation, elem_type):
         else:
             getattr(my_class1, relations[relation]).append(my_class2)
     except KeyError:
-        print("unknown relation")
+        print(f"unknown relation '{relation}'")
         sys.exit(1)
 
-def create_link_onto(iri1, path1, iri2, path2, matches, spec_ids=None):
+
+def insert_individual_relation(onto, ind1, ind2) -> None:
+    """ insert a relation between two individuals from two different ontologies
+    NOTE: so far, only equivalence relations are considered
+
+    :param onto: link ontology
+    :param ind1: first individual
+    :param ind2: second individual
+    :param relation: relation holding between the two individuals
+    """
+    class1 = ind1.is_a[0]
+    i1 = onto["A_" + class1.name](ind1.name)
+    class2 = ind2.is_a[0]
+    i2 = onto["B_" + class2.name](ind2.name)
+    i1.equivalent_to.append(i2)
+
+
+def create_link_onto(iri1, path1, iri2, path2, class_matches, spec_ids=None):
     """create link onto and insert matches"""
     description = "This is a link ontology generated for combining " + iri1 +\
                   " and " + iri2 + "."
