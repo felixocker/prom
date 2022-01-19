@@ -61,9 +61,11 @@ def insert_individual_relation(onto, ind1, ind2) -> None:
     :param relation: relation holding between the two individuals
     """
     class1 = ind1.is_a[0]
-    i1 = onto["A_" + class1.name](ind1.name)
+    i1 = onto["A_" + class1.name]("A_" + ind1.name)
+    i1.equivalent_to.append(ind1)
     class2 = ind2.is_a[0]
-    i2 = onto["B_" + class2.name](ind2.name)
+    i2 = onto["B_" + class2.name]("B_" + ind2.name)
+    i2.equivalent_to.append(ind2)
     i1.equivalent_to.append(i2)
 
 
