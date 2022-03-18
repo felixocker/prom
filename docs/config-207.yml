@@ -9,7 +9,7 @@ settings:
   benchmark:
     benchmark-mode: True
     reference-alignment: ../data/refalign-207.csv
-    min-example: True
+    min-example: False
     show-faulty-matches: True
 
 thresholds:
