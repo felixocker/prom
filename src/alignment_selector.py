@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""alignment selection"""
-
+"""
+alignment selection
+"""
 
 import copy
 import itertools as it
@@ -8,7 +9,7 @@ import multiprocessing as mp
 import timeit
 
 
-class AlignmentSelector():
+class AlignmentSelector:
     """optimize the alignment for a set of matches"""
 
     def __init__(self, threshold: float, matches: list, uid1_pos: int,
@@ -28,8 +29,7 @@ class AlignmentSelector():
         self.uid2_pos: int = uid2_pos
         self.rating_pos: int = rating_pos
 
-
-    def optimize_combination(self, method: str) -> list:
+    def optimize_combination(self, method: str) -> None:
         """ calculate similarity for all combinations of elements from two lists
 
         :param method: selection method - greedy or optimal
@@ -42,10 +42,9 @@ class AlignmentSelector():
         reduced_combinations = self._enforce_threshold(self.matches)
         try:
             selection = methods[method]
-        except:
-            print(f"invalid method {method} should be one of {list(methods.keys())}")
-        self.optimal_combination = selection(reduced_combinations)
-
+            self.optimal_combination = selection(reduced_combinations)
+        except KeyError:
+            print(f"invalid method {method} - should be one of {list(methods.keys())}")
 
     def _enforce_threshold(self, combinations: list) -> list:
         """ remove elements from list if their similarity is below threshold
@@ -54,7 +53,6 @@ class AlignmentSelector():
         :return: accepted matches
         """
         return [e for e in combinations if e[self.rating_pos] > self.threshold]
-
 
     def _optimal_selection_multicore(self, matches: list) -> list:
         """ optimize overall matching quality assuming that only two elements can
@@ -65,18 +63,17 @@ class AlignmentSelector():
         :return: one possible combination w/ the highest score
         """
         if not matches:
-            results=[[[[]]]]
+            results: list = [[[[]]]]
         else:
             reps = len(matches)
-            tasks = zip(it.repeat([], reps), it.repeat(.0, reps), [[m] for m in matches], it.repeat(matches, reps))
+            tasks: list = zip(it.repeat([], reps), it.repeat(.0, reps), [[m] for m in matches], it.repeat(matches, reps))
             with mp.Pool(processes=None) as pool:
                 results = pool.starmap(self._next_level, tasks)
-            results.sort(key=lambda x:x[1], reverse=True)
+            results.sort(key=lambda x: x[1], reverse=True)
         return results[0][0][0]
 
-
     def _optimal_selection(self, matches: list) -> list:
-        """ optimize overall matching quality assuming that only two elements can 
+        """ optimize overall matching quality assuming that only two elements can
         be matched; directly write to list of lists
         NOTE: helpful for smaller numbers of matches
 
@@ -84,11 +81,10 @@ class AlignmentSelector():
         :return: one possible combination w/ the highest score
         """
         if not matches:
-            combos = [[]]
+            combos: list = [[]]
         else:
-            combos,_ = self._next_level([], 0.0, [], matches)
+            combos, _ = self._next_level([], 0.0, [], matches)
         return combos[0]
-
 
     @staticmethod
     def _remove_duplicates(lst: list) -> list:
@@ -100,12 +96,11 @@ class AlignmentSelector():
         for elem in lst:
             elem.sort()
         lst.sort()
-        reduced = list(k for k,_ in it.groupby(lst))
+        reduced = list(k for k, _ in it.groupby(lst))
         return reduced
 
-
     def _next_level(self, combos: list, highscore: float, option: list,
-                    matches: list, mult: bool=False) -> float:
+                    matches: list, mult: bool=False) -> tuple:
         """ recursive function to add to the list of combinations; always tries
         to add as many matches as possible, as all matches have a positive rating
 
@@ -116,7 +111,7 @@ class AlignmentSelector():
             score, all combos are returned
         """
         if option:
-            new_matches = [m for m in matches if not m[self.uid1_pos] == option[-1][self.uid1_pos] and\
+            new_matches = [m for m in matches if not m[self.uid1_pos] == option[-1][self.uid1_pos] and
                            not m[self.uid2_pos] == option[-1][self.uid2_pos]]
         else:
             new_matches = copy.copy(matches)
@@ -135,7 +130,6 @@ class AlignmentSelector():
                 combos, highscore = self._next_level(combos, highscore, new_option, new_matches)
         return combos, highscore
 
-
     def _greedy_selection_deprecated(self, matches: list) -> list:
         """ greedy selection of best matches; a string may only be listed in one match
         NOTE: this is significantly slower than the greedy_selection that uses sort
@@ -146,7 +140,7 @@ class AlignmentSelector():
         # NOTE: in case of several matches involving the same element w the same rating
         # the first one is chosen - for performance reasons, this is not ordered and
         # may result in non-deterministic results
-        selection = []
+        selection: list = []
         for m in matches:
             match_ratings = [e[-1] for e in matches if e[self.uid1_pos] == m[self.uid1_pos] or\
                              e[self.uid2_pos] == m[self.uid2_pos]]
@@ -155,7 +149,6 @@ class AlignmentSelector():
             if not any(r > m[-1] for r in match_ratings) and not any(r >= m[-1] for r in selection_ratings):
                 selection.append(m)
         return selection
-
 
     def _greedy_selection(self, matches: list) -> list:
         """ greedy selection of best matches; a string may only be listed in one match
@@ -166,15 +159,14 @@ class AlignmentSelector():
         """
         # NOTE: in case of several matches involving the same element w the same rating
         # the first one is chosen - may result in non-deterministic results
-        selection = []
+        selection: list = []
         matches.sort(key=lambda x: x[-1], reverse=True)
         for m in matches:
-            selection_related = [e for e in selection if e[self.uid1_pos] == m[self.uid1_pos] or\
+            selection_related = [e for e in selection if e[self.uid1_pos] == m[self.uid1_pos] or
                                  e[self.uid2_pos] == m[self.uid2_pos]]
             if not selection_related:
                 selection.append(m)
         return selection
-
 
     def overall_score(self, elems: list) -> float:
         """ calculate overall score
@@ -183,7 +175,6 @@ class AlignmentSelector():
         :return: cumulative score of all elems
         """
         return sum([m[self.rating_pos] for m in elems])
-
 
 
 if __name__ == "__main__":
