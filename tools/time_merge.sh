@@ -23,6 +23,7 @@ TIMEFORMAT="%R"
 for n in $(seq $iterations); do
 	echo "iteration: $n"
   # MEXT/ MEXO; works with "config_min.yml", set min-example to False
+  # MEXO: translate onto-fr using translate_onto.py
   cp ../tools/*.owl ../data/
   # MVSP; works with "alt_config.yml"
   # cp ../tools/manufacturing-capability ../tools/mason_reduced.owl ../data/
