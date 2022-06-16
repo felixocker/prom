@@ -1,0 +1,19 @@
+onto statistics
+onto,classes,ops,dps,sum
+onto101,50,26,46,122
+onto103,50,26,46,122
+onto207,50,25,46,121
+onto301,15,0,40,55
+mason,95,26,14,135
+mfg,85,15,0,100
+onto-a,9,4,4,17
+onto-fr,11,5,4,20
+
+interactions
+onto1,onto2,#interactions
+onto-a,onto-fr,13
+mason,mfg,8
+onto101,onto103,33
+onto101,onto207,19
+onto101,onto301,14
+

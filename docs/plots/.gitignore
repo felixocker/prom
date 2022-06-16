@@ -1,0 +1,8 @@
+# directories
+.venv/
+
+# file types
+*.pdf
+
+
+
