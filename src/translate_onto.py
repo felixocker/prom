@@ -77,10 +77,9 @@ def huggingface_translate(text, src, trg):
         mname = f'Helsinki-NLP/opus-mt-{src}-{trg}'
         model = MarianMTModel.from_pretrained(mname)
         tok = MarianTokenizer.from_pretrained(mname)
-    batch = tok.prepare_seq2seq_batch(src_texts=[text])
-    gen = model.generate(**batch)
-    words: List[str] = tok.batch_decode(gen, skip_special_tokens=True)
-    return words[0]
+    translated = model.generate(**tok(text, return_tensors="pt", padding=True), max_new_tokens=20)
+    tgt_text = [tok.decode(t, skip_special_tokens=True) for t in translated]
+    return tgt_text[0]
 
 def translate_w_google(text, source, sink):
     """translate a word using the googletrans package"""

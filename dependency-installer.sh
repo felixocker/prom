@@ -18,6 +18,7 @@ python3 -m spacy download en_core_web_sm
 python3 <<EOF
 import nltk
 nltk.download('wordnet')
+nltk.download('omw-1.4')
 EOF
 
 rm temp_file
