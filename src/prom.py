@@ -29,7 +29,7 @@ class Prom:
     production ontology merging framework main class
     """
 
-    def __init__(self, configfile: str, onto_dir: str = "../data") -> None:
+    def __init__(self, configfile: str, onto_dir: str="../data", verbose: bool=True) -> None:
         """ initialize with data from config file
         
         :param configfile: path to yaml configuration file
@@ -37,6 +37,7 @@ class Prom:
         """
         self.configfile = configfile
         self.path_lo = None
+        self.verbose = verbose
         # load settings
         with open(self.configfile, "r") as ymlfile:
             self.cfg = yaml.safe_load(ymlfile)
@@ -60,7 +61,8 @@ class Prom:
     def setup_min(self) -> None:
         """ create ontos for minimal example
         """
-        print("creating ontos")
+        if self.verbose:
+            print("creating ontos")
         onto_a.main()
         onto_fr.main()
     
@@ -68,14 +70,17 @@ class Prom:
     def check_inputs(self) -> None:
         """ check input ontos for consistency and translate if consistent
         """
-        print("checking consistency")
-        print("----")
+        if self.verbose:
+            print("checking consistency")
+            print("----")
         for path in self.paths:
-            print(path[0])
+            if self.verbose:
+                print(path[0])
             debugger = odb.OntoDebugger(iri=path[1], path=path[2])
             debugger.debug_onto(assume_correct_taxo=False)
             to.main(path[0], path[1], path[2], self.default_lang, path[3])
-            print("----")
+            if self.verbose:
+                print("----")
 
 
     def match_tbox(self) -> list:
@@ -99,8 +104,9 @@ class Prom:
         # matches.append(['owl:Class', 'http://www.owl-ontologies.com/mason.owl#Drilling',\
         #                 'http://www.ohio.edu/ontologies/manufacturing-capability#Drilling', 'disjoint', 0.9])
 
-        print(f"all {len(matches)} potential matches are:")
-        print(*matches, sep="\n")
+        if self.verbose:
+            print(f"all {len(matches)} potential matches are:")
+            print(*matches, sep="\n")
         # auto_accepted_matches = sb.check_boundary(matches, 4, self.match_boundary)
         return matches
 
@@ -111,11 +117,24 @@ class Prom:
         :param matches: automatically identified matches
         """
         accepted_matches = confirm.main(matches, self.reject_threshold, self.accept_threshold)
-        print("accepted matches are:")
-        print(*accepted_matches, sep="\n")
+        if self.verbose:
+            print("accepted matches are:")
+            print(*accepted_matches, sep="\n")
         return accepted_matches
 
-    
+
+    def create_lo(self, accepted_matches: list) -> None:
+        """ create the base link ontology
+
+        :param accepted_matches: matches to be inserted; confirmed by user in not fully-automated mode
+        """
+        if self.verbose:
+            print("creating link onto")
+        self.path_lo = clo.create_link_onto(self.paths[0][1], self.paths[0][0],
+                                            self.paths[1][1], self.paths[1][0],
+                                            accepted_matches, self.path_lo)
+
+
     def ensure_consistency(self, accepted_matches: list) -> None:
         """ interactive consistency checking of the link ontology created
         runs loop until no more inconsistencies detected or user opts out
@@ -124,15 +143,14 @@ class Prom:
         :param accepted_matches: matches to be inserted; confirmed by user in not fully-automated mode
         """
         while True:
-            print("creating link onto")
-            self.path_lo = clo.create_link_onto(self.paths[0][1], self.paths[0][0], 
-                                                self.paths[1][1], self.paths[1][0], 
-                                                accepted_matches, self.path_lo)
-            print("running consistency check")
+            self.create_lo(accepted_matches)
+            if self.verbose:
+                print("running consistency check")
             joint_debugger = odb.OntoDebugger(iri=self.path_lo[0], path=self.path_lo[1])
             inconsistent_classes = joint_debugger.reasoning()
             if not inconsistent_classes:
-                print("no inconsistencies detected - check link onto: " + self.path_lo[2])
+                if self.verbose:
+                    print("no inconsistencies detected - check link onto: " + self.path_lo[2])
                 break
             else:
                 print("inconsistent classes detected:")
@@ -150,21 +168,34 @@ class Prom:
                     break
 
 
-    def match_abox(self, accepted_matches: list) -> None:
-        """ matching the aboxes of the two input ontologies; also writes directly into the link onto
+    def match_abox(self, accepted_matches: list) -> list:
+        """ matching the aboxes of the two input ontologies
 
         :param accepted_matches: list of accepted_matches from the tbox matching process
         """
         abm = am.AboxMatcher(iri1=self.paths[0][1], iri2=self.paths[1][1],
                              path1=self.paths[0][0], path2=self.paths[1][0],
                              tbox_al=accepted_matches)
-        ind_matches = abm.compare_inds(unbiased=False)
+        return abm.compare_inds(unbiased=False)
+
+
+    def add_abox_matches(self, ind_matches: list) -> None:
+        """ writes abox matches to the link onto
+
+        :param ind_matches: list of accepted matches from the abox matching process
+        """
         clo.add_abox_to_link_onto(self.path_lo, ind_matches)
-        if self.benchmark_mode:
-            print("matching quality:")
-            print(qa.create_report([match[1:4] for match in accepted_matches]))
-            print("baseline matching quality (string similarity based):")
-            bsm.create_baseline(configfile="config.yml", algtype="greedy", acceptance_threshold=.9)
+
+
+    def assess_results(self, accepted_matches) -> None:
+        """ check quality of the alignment created
+
+        :param accepted_matches: list of accepted_matches from the tbox matching process
+        """
+        print("matching quality:")
+        print(qa.create_report([match[1:4] for match in accepted_matches]))
+        print("baseline matching quality (string similarity based):")
+        bsm.create_baseline(configfile="config.yml", algtype="greedy", acceptance_threshold=.9)
 
 
     def run_all(self):
@@ -173,10 +204,13 @@ class Prom:
         if self.min_ex:
             self.setup_min()
         self.check_inputs()
-        matches = self.match_tbox()
-        accepted_matches = self.confirm_matches(matches)
+        tbox_matches = self.match_tbox()
+        accepted_matches = self.confirm_matches(tbox_matches)
         self.ensure_consistency(accepted_matches)
-        self.match_abox(accepted_matches)
+        abox_matches = self.match_abox(accepted_matches)
+        self.add_abox_matches(abox_matches)
+        if self.benchmark_mode:
+            self.assess_results(accepted_matches)
 
 
 
