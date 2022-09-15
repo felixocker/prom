@@ -22,11 +22,11 @@ OWL 2 DL ontology merging framework tailored to the production domain
 
 # Instructions
 * on Linux, run the bash script *dependency_installer.sh* to set up a virtual environment with the packages required
-* minimal example: simply run *main.py*
+* minimal example: simply run *prom.py*
 * production process example:
   1. download ontologies and preprocess them using the bash script *download_ontos.sh* in *data/*
   2. adapt the config file, as a reference cp. the file *alt_config.yml* in *docs/*
-  3. run *main.py*
+  3. run *prom.py*
 * for running OAEI benchmarks, cp. the instructions in the utility scripts in *docs/*
 
 # Citation
