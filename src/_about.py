@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__name__ = "prom"
+__name__ = "promster"
 __author__ = "Felix Ocker"
 __author_email__ = "felix.ocker@googlemail.com"
 __version__ = "0.2.1"
