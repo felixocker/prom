@@ -15,12 +15,13 @@ class AboxMatcher:
 
     relations = ["equivalence", "hypernym", "hyponym"]
 
-    def __init__(self, iri1: str, iri2: str, path1: str, path2: str, tbox_al: list) -> None:
+    def __init__(self, iri1: str, iri2: str, path1: str, path2: str, tbox_al: list, cfg: dict) -> None:
         """ load ontos from their IRIs and paths
 
         :param iri_i: IRI of the respective onto
         :param path_i: relative path to onto file
         :param tbox_al: existing TBox alignment [elemtype, iri1, iri2, reltype, rating]
+        :param cfg: dict with settings from config file
         """
         self.iri1 = iri1
         self.iri2 = iri2
@@ -33,18 +34,16 @@ class AboxMatcher:
         self.onto2 = self.onto2_world.get_ontology(self.path2).load()
         paths = [path.rsplit("/", maxsplit=1)[0]+"/" for path in (path1, path2)]
         onto_path.extend(list(dict.fromkeys(paths)))
-
-        with open("config.yml", "r") as ymlfile:
-            cfg = yaml.safe_load(ymlfile)
-            self.str_threshold = cfg["abox"]["string-threshold"]
-            self.overall_threshold = cfg["abox"]["overall-threshold"]
-            self.algtype = cfg["abox"]["algtype"]
-            self.label_rating = cfg["abox"]["weighting"]["label"]
-            self.structure_rating = cfg["abox"]["weighting"]["structure"]
-            self.dp_rating = cfg["abox"]["weighting"]["structure-sub"]["dp"]
-            self.opo_rating = cfg["abox"]["weighting"]["structure-sub"]["op-outgoing"]
-            self.opi_rating = cfg["abox"]["weighting"]["structure-sub"]["op-incoming"]
-            self.op_threshold = cfg["abox"]["weighting"]["structure-sub"]["op-threshold"]
+        # settings from config
+        self.str_threshold = cfg["abox"]["string-threshold"]
+        self.overall_threshold = cfg["abox"]["overall-threshold"]
+        self.algtype = cfg["abox"]["algtype"]
+        self.label_rating = cfg["abox"]["weighting"]["label"]
+        self.structure_rating = cfg["abox"]["weighting"]["structure"]
+        self.dp_rating = cfg["abox"]["weighting"]["structure-sub"]["dp"]
+        self.opo_rating = cfg["abox"]["weighting"]["structure-sub"]["op-outgoing"]
+        self.opi_rating = cfg["abox"]["weighting"]["structure-sub"]["op-incoming"]
+        self.op_threshold = cfg["abox"]["weighting"]["structure-sub"]["op-threshold"]
 
     def compare_inds_by_structure(self, unbiased: bool=False) -> list:
         """ compare individuals by structure; compare values associated via
@@ -272,6 +271,24 @@ class AboxMatcher:
 
 
 if __name__ == "__main__":
+    relevant_cfg = {
+        "abox": {
+            "string-threshold": .95,
+            "overall-threshold": .1,
+            "algtype": "greedy",
+            "weighting": {
+                "label": .2,
+                "structure": .8,
+                "structure-sub": {
+                    "dp": .4,
+                    "op-outgoing": .3,
+                    "op-incoming": .3,
+                    "op-threshold": 1,
+                }
+            }
+        }
+    }
+
     tbox_alignment = [["owl:Class", "http://example.org/onto-a.owl#merhcandise",
                        "http://example.org/onto-fr.owl#a", "equivalence", .9],
                       ["owl:Class", "http://example.org/onto-a.owl#car",
@@ -284,7 +301,8 @@ if __name__ == "__main__":
                        "http://example.org/onto-fr.owl#du", "equivalence", .8]]
 
     abm = AboxMatcher(iri1="http://example.org/onto-a.owl", iri2="http://example.org/onto-fr.owl",
-                      path1="../data/onto-a.owl", path2="../data/onto-fr.owl", tbox_al=tbox_alignment)
+                      path1="../data/onto-a.owl", path2="../data/onto-fr.owl", tbox_al=tbox_alignment,
+                      cfg=relevant_cfg)
 
     print("=== combined matching results: ===")
     print(*abm.compare_inds(unbiased=False), sep="\n")

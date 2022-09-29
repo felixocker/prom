@@ -175,7 +175,7 @@ class Prom:
         """
         abm = am.AboxMatcher(iri1=self.paths[0][1], iri2=self.paths[1][1],
                              path1=self.paths[0][0], path2=self.paths[1][0],
-                             tbox_al=accepted_matches)
+                             tbox_al=accepted_matches, cfg=self.cfg)
         return abm.compare_inds(unbiased=False)
 
 
