@@ -272,7 +272,7 @@ class AboxMatcher:
 
 
 if __name__ == "__main__":
-    relevant_cfg = {
+    cfg_snippet = {
         "abox": {
             "string-threshold": .95,
             "overall-threshold": .1,
@@ -303,7 +303,7 @@ if __name__ == "__main__":
 
     abm = AboxMatcher(iri1="http://example.org/onto-a.owl", iri2="http://example.org/onto-fr.owl",
                       path1="../data/onto-a.owl", path2="../data/onto-fr.owl", tbox_al=tbox_alignment,
-                      cfg=relevant_cfg)
+                      cfg=cfg_snippet)
 
     print("=== combined matching results: ===")
     print(*abm.compare_inds(unbiased=False), sep="\n")
