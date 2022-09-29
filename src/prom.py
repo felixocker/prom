@@ -211,21 +211,3 @@ class Prom:
         self.add_abox_matches(abox_matches)
         if self.benchmark_mode:
             self.assess_results(accepted_matches)
-
-
-
-if __name__ == "__main__":
-    config = "./config.yml"
-    prom = Prom(config)
-    inputs = None
-    if prom.paths[0][1] == "http://www.owl-ontologies.com/mason.owl" and\
-       prom.paths[1][1] == "http://www.ohio.edu/ontologies/manufacturing-capability":
-        inputs = ["y"]*31 + ["n"]
-    elif prom.paths[0][1] == "http://example.org/onto-a.owl" and\
-         prom.paths[1][1] == "http://example.org/onto-fr.owl":
-        inputs = ["y"]*14
-    if inputs:
-        with unittest.mock.patch('builtins.input', side_effect=inputs):
-            prom.run_all()
-    else:
-        prom.run_all()
