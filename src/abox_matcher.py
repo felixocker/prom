@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""abox matcher within PrOM"""
+"""
+ABox matcher within PrOM
+"""
 
 import itertools as it
 import numpy as np
-import yaml
 from owlready2 import World, IRIS, onto_path, owl, Property, entity
 
 import alignment_selector as alse
