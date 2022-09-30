@@ -31,11 +31,6 @@ DE_EN_tok = MarianTokenizer.from_pretrained('Helsinki-NLP/opus-mt-de-en')
 FR_EN_model = MarianMTModel.from_pretrained('Helsinki-NLP/opus-mt-fr-en')
 FR_EN_tok = MarianTokenizer.from_pretrained('Helsinki-NLP/opus-mt-fr-en')
 
-with open("config.yml", "r") as ymlfile:
-    cfg = yaml.safe_load(ymlfile)
-    DEFAULT_LANG = cfg["settings"]["default-language"]
-    DOMAIN_DICT = cfg["settings"]["domain-specific-dict"]
-    SPELLCHECK = cfg["settings"]["spellchecking"]
 
 def create_query(iri, element_type):
     """SPARQL query to extract classes, labels, and language tags"""
@@ -51,6 +46,7 @@ def create_query(iri, element_type):
         ORDER BY ?elem ?language"""
     return query
 
+
 def query_onto(path, query):
     """query onto and return results as list - onto must be already loaded"""
     my_world = World()
@@ -59,10 +55,12 @@ def query_onto(path, query):
     results = list(graph.query(query))
     return results
 
+
 def reduce_to_class(elem):
     """return only actual class name"""
     # NOTE: assumes that # is used to separate entity name from onto name
     return elem.split("#")[-1]
+
 
 def huggingface_translate(text, src, trg):
     """translate text using the huggingface translator"""
@@ -81,6 +79,7 @@ def huggingface_translate(text, src, trg):
     tgt_text = [tok.decode(t, skip_special_tokens=True) for t in translated]
     return tgt_text[0]
 
+
 def translate_w_google(text, source, sink):
     """translate a word using the googletrans package"""
     # NOTE: does not work reliably
@@ -89,14 +88,17 @@ def translate_w_google(text, source, sink):
     time.sleep(1)
     return translation
 
+
 def translate(text, source, sink):
     """translate a word using the translate package"""
     translator = Translator(from_lang=source, to_lang=sink)
     translation = translator.translate(text)
     return translation
 
-def two_stage_translate(text, src, trg, translator="hf"):
+
+def two_stage_translate(text, src, trg, cfg: dict, translator="hf"):
     """try translating via domain-specific dict first, otherwise default to translator"""
+    domain_dict = cfg["settings"]["domain-specific-dict"]
     funcs = {"hf": huggingface_translate,
              "twg": translate_w_google,
              "t": translate}
@@ -105,16 +107,18 @@ def two_stage_translate(text, src, trg, translator="hf"):
     except KeyError:
         print("unknown translator", translator)
         sys.exit(1)
-    if DOMAIN_DICT:
+    if domain_dict:
         translation = ee.get_translation(text, str(src), str(trg))
-    if not DOMAIN_DICT or not translation:
+    if not domain_dict or not translation:
         translation = func(text, src, trg)
     return translation
+
 
 def tknzr(text):
     """tokenizer for spaces, underscores, camelcase, and dromedacase"""
     regex = r'[A-ZÁÀÂÇÉÈÊÔÚÙÛÄÖÜ]?[a-záàâçéèêôúùûäöü]+|[A-ZÁÀÂÇÉÈÊÔÚÙÛÄÖÜ]+(?=[A-ZÁÀÂÇÉÈÊÔÚÙÛÄÖÜ]|$)'
     return " ".join(re.findall(regex, text)).lower()
+
 
 def extract_label(elem, elem_type):
     """extract certain POS for classes, ops, and dps"""
@@ -139,27 +143,29 @@ def extract_label(elem, elem_type):
         label = sorted(matched, key=len, reverse=True)[0]
     return label
 
-def add_label(elem, elem_type, target_lang, source_lang):
+
+def add_label(elem, elem_type, target_lang, source_lang, cfg: dict):
     """translate input and add respective label"""
     # NOTE: language detection does not work reliably for single words
     # NOTE: language detection does not work in case of typos
+    spellcheck = cfg["settings"]["spellchecking"]
     label_default = None
     classname = reduce_to_class(str(elem[0]))
     if elem[1] and elem[2] and elem[2] != target_lang:
-        label_default = two_stage_translate(tknzr(str(elem[1])), elem[2], target_lang).lower()
+        label_default = two_stage_translate(tknzr(str(elem[1])), elem[2], target_lang, cfg).lower()
     elif elem[1] and not elem[2]:
         if not source_lang:
             detected_lang = detect(tknzr(elem[1]))
         else:
             detected_lang = source_lang
         if detected_lang == target_lang:
-            if SPELLCHECK and target_lang == "en":
+            if spellcheck and target_lang == "en":
             # NOTE: as of now, spellchecker only works for English
                 label_default = spelchek.correct(tknzr(elem[1]))
             else:
                 label_default = tknzr(elem[1])
         else:
-            label_default = two_stage_translate(tknzr(str(elem[1])), detected_lang, target_lang).lower()
+            label_default = two_stage_translate(tknzr(str(elem[1])), detected_lang, target_lang, cfg).lower()
     elif not elem[1] and not elem[2] and len(classname) > 1:
         if not source_lang:
             detected_lang = detect(tknzr(classname))
@@ -167,20 +173,23 @@ def add_label(elem, elem_type, target_lang, source_lang):
             detected_lang = source_lang
         # possibly use spacy instead to improve reliability
         if detected_lang == target_lang:
-            if SPELLCHECK and target_lang == "en":
+            if spellcheck and target_lang == "en":
             # NOTE: as of now, spellchecker only works for English
                 label_default = spelchek.correct(tknzr(classname))
             else:
                 label_default = tknzr(classname)
         else:
-            label_default = two_stage_translate(tknzr(classname), detected_lang, target_lang).lower()
+            label_default = two_stage_translate(tknzr(classname), detected_lang, target_lang, cfg).lower()
     elif not elem[1] and not elem[2] and len(classname) <= 1:
         label_default = classname
     if label_default:
         getattr(IRIS[str(elem[0])], "label").extend([locstr(extract_label(label_default, elem_type), lang=target_lang)])
 
-def main(onto, iri, target, target_lang=DEFAULT_LANG, source_lang=None):
+
+def main(onto, iri, target, cfg: dict, target_lang=None, source_lang=None):
     """add labels in language specified, defaults to English"""
+    if target_lang is None:
+        target_lang = cfg["settings"]["default-language"]
     classes = query_onto(onto, create_query(iri, "owl:Class"))
     objprops = query_onto(onto, create_query(iri, "owl:ObjectProperty"))
     dataprops = query_onto(onto, create_query(iri, "owl:DatatypeProperty"))
@@ -194,21 +203,30 @@ def main(onto, iri, target, target_lang=DEFAULT_LANG, source_lang=None):
     with onto:
         for elem in classes:
             if not any(e[0] == elem[0] and str(e[2]) == target_lang for e in classes):
-                add_label(elem, "owl:Class", target_lang, source_lang)
+                add_label(elem, "owl:Class", target_lang, source_lang, cfg)
         for op in objprops:
             if not any(e[0] == op[0] and str(e[2]) == target_lang for e in objprops):
-                add_label(op, "owl:ObjectProperty", target_lang, source_lang)
+                add_label(op, "owl:ObjectProperty", target_lang, source_lang, cfg)
         for dp in dataprops:
             if not any(e[0] == dp[0] and str(e[2]) == target_lang for e in dataprops):
-                add_label(dp, "owl:DatatypeProperty", target_lang, source_lang)
+                add_label(dp, "owl:DatatypeProperty", target_lang, source_lang, cfg)
     onto.save(file=target)
 
+
 if __name__ == "__main__":
+    cfg_snippet = {
+        "settings": {
+            "default-language": "en",
+            "domain-specific-dict": True,
+            "spellchecking": True,
+        }
+    }
+
     onto_fr = "file://./../data/onto-fr.owl"
     iri_fr = "http://example.org/onto-fr.owl"
     filename_fr = "../data/onto-fr.owl"
-    main(onto_fr, iri_fr, filename_fr)
+    main(onto_fr, iri_fr, filename_fr, cfg_snippet)
     onto_a = "file://./../data/onto-a.owl"
     iri_a = "http://example.org/onto-a.owl"
     filename_a = "../data/onto-a.owl"
-    main(onto_a, iri_a, filename_a, source_lang="en")
+    main(onto_a, iri_a, filename_a, cfg_snippet, source_lang="en")

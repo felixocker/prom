@@ -78,7 +78,7 @@ class Prom:
                 print(path[0])
             debugger = odb.OntoDebugger(iri=path[1], path=path[2])
             debugger.debug_onto(assume_correct_taxo=False)
-            to.main(path[0], path[1], path[2], self.default_lang, path[3])
+            to.main(path[0], path[1], path[2], self.cfg, self.default_lang, path[3])
             if self.verbose:
                 print("----")
 
@@ -193,9 +193,9 @@ class Prom:
         :param accepted_matches: list of accepted_matches from the tbox matching process
         """
         print("matching quality:")
-        print(qa.create_report([match[1:4] for match in accepted_matches]))
+        print(qa.create_report(cfg=self.cfg, alignment=[match[1:4] for match in accepted_matches]))
         print("baseline matching quality (string similarity based):")
-        bsm.create_baseline(configfile="config.yml", algtype="greedy", acceptance_threshold=.9)
+        bsm.create_baseline(cfg=self.cfg, algtype="greedy", acceptance_threshold=.9)
 
 
     def run_all(self):
