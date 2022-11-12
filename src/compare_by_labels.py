@@ -290,7 +290,6 @@ def implicit_compare(label_info_1, label_info_2, elem_type):
             # derivationally related form
             for iter, combo in enumerate(((combination[0], combination[1]), (combination[1], combination[0]))):
                 if check_xor_label_reification(elem_type, combo[0], combo[1], True):
-                    assert len(tokens_by_type(combo[0][2], "NOUN")) == 1, f"OP with more than one noun: {combo[0][0]}"
                     if tokens_by_type(combo[1][2], "VERB", "ROOT")[0] in\
                     extr.get_derivationally_related_verbs(tokens_by_type(combo[0][2], "NOUN")[0], "n"):
                         implicit_match = arrange_impl_match(elem_type, str(combo[0][0]), str(combo[1][0]),\
@@ -323,7 +322,6 @@ def implicit_compare(label_info_1, label_info_2, elem_type):
                                           rels["ant"], IMPLICIT_ANT_RATING]
                 for iter, combo in enumerate(((combination[0], combination[1]), (combination[1], combination[0]))):
                     if check_xor_label_reification(elem_type, combo[0], combo[1], False):
-                        assert len(tokens_by_type(combo[0][2], "NOUN")) == 1, f"OP with more than one noun: {combo[0][0]}"
                         if tokens_by_type(combo[1][2], "VERB", "ROOT")[0] in\
                            extr.get_derivationally_related_verbs(tokens_by_type(combo[0][2], "NOUN")[0], "n"):
                             implicit_match = arrange_impl_match(elem_type, str(combo[0][0]), str(combo[1][0]),\
