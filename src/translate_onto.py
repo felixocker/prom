@@ -204,7 +204,11 @@ def main(onto, iri, target, target_lang=DEFAULT_LANG, source_lang=None):
     onto.save(file=target)
 
 if __name__ == "__main__":
-    onto = "file://./../data/onto-fr.owl"
-    iri = "http://example.org/onto-fr.owl"
-    filename = "../data/onto-fr.owl"
-    main(onto, iri, filename)
+    onto_fr = "file://./../data/onto-fr.owl"
+    iri_fr = "http://example.org/onto-fr.owl"
+    filename_fr = "../data/onto-fr.owl"
+    main(onto_fr, iri_fr, filename_fr)
+    onto_a = "file://./../data/onto-a.owl"
+    iri_a = "http://example.org/onto-a.owl"
+    filename_a = "../data/onto-a.owl"
+    main(onto_a, iri_a, filename_a, source_lang="en")
